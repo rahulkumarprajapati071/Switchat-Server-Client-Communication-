@@ -1,7 +1,10 @@
 package com.example.switchat.activity;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -21,13 +24,13 @@ import java.util.Enumeration;
 
 public class ServerActivity extends AppCompatActivity {
 
-    private static final Integer portInt = 8080;
+    private static final Integer portInt = 50512;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_server_activity);
+        setContentView(R.layout.activity_server);
 
         TextView ipAddress = findViewById(R.id.ip_address);
         TextView port = findViewById(R.id.port);
@@ -65,23 +68,32 @@ public class ServerActivity extends AppCompatActivity {
 
 
     private void serverStarting(String ipAddresss) {
+        Log.d(TAG, "Server started, listening on IP: " + ipAddresss + " and Port: " + portInt);
         new Thread(() -> {
             try {
-                //create a server socket
+                // Create a server socket
                 ServerSocket serverSocket = new ServerSocket(portInt);
+                Log.d(TAG, "Waiting for client connection...");
 
-                //wait for client connection
+                // Block and wait for client connection
                 Socket clientSocket = serverSocket.accept();
+                Log.d(TAG, "Client connected!");
+
+                // Store the client socket for further use
                 SocketManager.setSocket(clientSocket);
-//              //Once connected, redirect to chat screen
+
+                // Once connected, move to the chat screen
                 runOnUiThread(() -> {
-                    //Todo: something we need to pass
-                    Intent intent = new Intent(ServerActivity.this,ChatActivity.class);
+                    Log.d(TAG, "Client connected from IP: " + clientSocket.getInetAddress());
+                    Intent intent = new Intent(ServerActivity.this, ChatActivity.class);
                     startActivity(intent);
                 });
-            }catch (IOException e){
+
+            } catch (IOException e) {
+                Log.e(TAG, "Error starting server: " + e.getMessage());
                 e.printStackTrace();
             }
         }).start();
     }
+
 }
